@@ -16,6 +16,7 @@ import java.util.concurrent.*;
 
 public class Main extends Application {
     Label diTimeNow = new Label();
+    ScheduledFuture everySecond;
     @Override
     public void start(Stage primaryStage) throws Exception{
         Stage window = primaryStage;
@@ -42,6 +43,9 @@ public class Main extends Application {
         btnStart.setPrefWidth(100);
         btnStart.setPrefHeight(35);
 
+        Button btnEnd = new Button("End");
+        btnEnd.setPrefWidth(100);
+        btnEnd.setPrefHeight(35);
 
         diTimeNow.setFont(labels);
         diTimeNow.setTextFill(Color.INDIANRED);
@@ -55,6 +59,7 @@ public class Main extends Application {
         RadioButton radIready = new RadioButton("iReady");
         radIready.setToggleGroup(tgClasses);
         radIready.setFont(labels);
+
 
         RadioButton radLexia = new RadioButton("Lexia");
         radLexia.setToggleGroup(tgClasses);
@@ -75,18 +80,33 @@ public class Main extends Application {
         layout.add(lblTimeNow,0,0); layout.add(diTimeNow,1,0);
         layout.add(lblTimeLeft,0,1); layout.add(diTimeLeft,1,1);
         layout.add(vbRadBtns,2,0,1,2);
-        layout.add(btnStart,1,3);
+        layout.add(btnStart,1,3);layout.add(btnEnd,1,3);
 
+        btnEnd.setVisible(false);
         ScheduledExecutorService pool = Executors.newScheduledThreadPool(6);
-        ScheduledFuture everySecond = pool.scheduleAtFixedRate(() -> {
-            Platform.runLater(()->{
-                diTimeNow.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm:ss a")));
-            });
-        },0,1, TimeUnit.SECONDS);
 
         //******************************************************************
         //**                      Event Handlers                          **
         //******************************************************************
+        btnStart.setOnAction(event -> {
+            // Start the timer
+
+            everySecond = pool.scheduleAtFixedRate(() -> {
+                Platform.runLater(()->{
+                    diTimeNow.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm:ss a")));
+                });
+            },0,1, TimeUnit.SECONDS);
+            btnStart.setVisible(false);
+            btnEnd.setVisible(true);
+        });
+
+        btnEnd.setOnAction(event -> {
+            everySecond.cancel(true);
+            btnEnd.setVisible(false);
+            btnStart.setVisible(true);
+        });
+
+
 
 
 
@@ -95,6 +115,9 @@ public class Main extends Application {
         window.show();
     }
 
+    private void stopTimer(ScheduledFuture s){
+        s.cancel(true);
+    }
     private void updateTime(){
 
     }

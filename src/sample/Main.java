@@ -1,6 +1,7 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -11,12 +12,16 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.*;
 
 public class Main extends Application {
-
+    Label diTimeNow = new Label();
     @Override
     public void start(Stage primaryStage) throws Exception{
         Stage window = primaryStage;
+        window.setOnCloseRequest(event -> {
+            System.exit(-1);
+        });
         Font labels = new Font("Comic Sans MS",18);
         Border border = new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID,CornerRadii.EMPTY,new BorderWidths(1)));
 
@@ -37,7 +42,7 @@ public class Main extends Application {
         btnStart.setPrefWidth(100);
         btnStart.setPrefHeight(35);
 
-        Label diTimeNow = new Label();
+
         diTimeNow.setFont(labels);
         diTimeNow.setTextFill(Color.INDIANRED);
         Label diTimeLeft = new Label();
@@ -72,12 +77,23 @@ public class Main extends Application {
         layout.add(vbRadBtns,2,0,1,2);
         layout.add(btnStart,1,3);
 
-        diTimeNow.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm a")));
+        ScheduledExecutorService pool = Executors.newScheduledThreadPool(6);
+        ScheduledFuture everySecond = pool.scheduleAtFixedRate(() -> {
+            Platform.runLater(()->{
+                diTimeNow.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm:ss a")));
+            });
+        },0,1, TimeUnit.SECONDS);
+
+
+
         Scene scene = new Scene(layout,400,175);
         window.setScene(scene);
         window.show();
     }
 
+    private void updateTime(){
+
+    }
 
     public static void main(String[] args) {
         launch(args);

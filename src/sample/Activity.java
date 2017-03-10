@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleStringProperty;
  * Created by ecogle on 3/10/2017.
  */
 public class Activity {
-    
+
     public SimpleIntegerProperty activityId = new SimpleIntegerProperty();
     public SimpleStringProperty startTime = new SimpleStringProperty();
     public SimpleStringProperty endTime = new SimpleStringProperty();

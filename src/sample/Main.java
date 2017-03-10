@@ -84,6 +84,10 @@ public class Main extends Application {
             });
         },0,1, TimeUnit.SECONDS);
 
+        //******************************************************************
+        //**                      Event Handlers                          **
+        //******************************************************************
+
 
 
         Scene scene = new Scene(layout,400,175);

@@ -10,13 +10,23 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.concurrent.*;
 
 public class Main extends Application {
     Label diTimeNow = new Label();
     ScheduledFuture everySecond;
+    LocalDateTime start,end;
+
+    RadioButton radIready,radLexia,radCode;
     @Override
     public void start(Stage primaryStage) throws Exception{
         Stage window = primaryStage;
@@ -50,22 +60,24 @@ public class Main extends Application {
         diTimeNow.setFont(labels);
         diTimeNow.setTextFill(Color.INDIANRED);
         Label diTimeLeft = new Label();
+        diTimeLeft.setFont(labels);
+        diTimeLeft.setTextFill(Color.INDIANRED);
 
         //******************************************************************
         //**                    Radio Buttons                             **
         //******************************************************************
         ToggleGroup tgClasses = new ToggleGroup();
 
-        RadioButton radIready = new RadioButton("iReady");
+        radIready = new RadioButton("iReady");
         radIready.setToggleGroup(tgClasses);
         radIready.setFont(labels);
 
 
-        RadioButton radLexia = new RadioButton("Lexia");
+        radLexia = new RadioButton("Lexia");
         radLexia.setToggleGroup(tgClasses);
         radLexia.setFont(labels);
 
-        RadioButton radCode = new RadioButton("Code");
+        radCode = new RadioButton("Code");
         radCode.setToggleGroup(tgClasses);
         radCode.setFont(labels);
 
@@ -90,20 +102,38 @@ public class Main extends Application {
         //******************************************************************
         btnStart.setOnAction(event -> {
             // Start the timer
+             start = LocalDateTime.now();
 
             everySecond = pool.scheduleAtFixedRate(() -> {
                 Platform.runLater(()->{
-                    diTimeNow.setText(LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm:ss a")));
+                    diTimeNow.setText(start.format(DateTimeFormatter.ofPattern("h:mm a")));
+                    diTimeLeft.setText(getTimeLeft());
                 });
             },0,1, TimeUnit.SECONDS);
+
             btnStart.setVisible(false);
             btnEnd.setVisible(true);
+
+
+
         });
 
         btnEnd.setOnAction(event -> {
             everySecond.cancel(true);
             btnEnd.setVisible(false);
             btnStart.setVisible(true);
+            end = LocalDateTime.now();
+
+            long min = ChronoUnit.SECONDS.between(start,end);
+
+            System.out.println(Classes.IREADY.getMinutes());
+
+            Activity a = new ActivityBuilder()
+                    .setDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                    .setStartTime(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                    .setEndTime(end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                    .setTotalMin((int)min)
+                    .build();
         });
 
 
@@ -115,11 +145,51 @@ public class Main extends Application {
         window.show();
     }
 
-    private void stopTimer(ScheduledFuture s){
-        s.cancel(true);
-    }
-    private void updateTime(){
 
+
+    private int getTargetTime(){
+        int target = 0;
+        if(radIready.isSelected()){
+            target = Classes.IREADY.getMinutes();
+        }
+        else if(radCode.isSelected()){
+            target = Classes.CODE.getMinutes();
+        }
+        else if(radLexia.isSelected()){
+            target = Classes.LEXIA.getMinutes();
+        }
+
+        return target;
+    }
+
+    private String getTimeLeft(){
+
+        // time left definition:
+        /*
+            (target time) - (elapsed time).
+         */
+
+        //long diff = ChronoUnit.SECONDS.between(start,LocalDateTime.now()); // elapsed time
+        LocalDateTime targ = LocalDateTime.of(LocalDate.now(),LocalTime.of(0,getTargetTime()));
+        long t = ChronoUnit.NANOS.between(start,LocalDateTime.now());
+
+        LocalDateTime dif = targ.minusNanos(t);
+
+
+        return dif.format(DateTimeFormatter.ofPattern("m:ss"));
+
+
+    }
+
+    private long getElapsedTime(){
+
+        //elapsed time:
+        /*
+            (now time) - (start time)
+         */
+
+        long time = ChronoUnit.SECONDS.between(LocalDateTime.now(),start);
+        return time*-1;
     }
 
     public static void main(String[] args) {

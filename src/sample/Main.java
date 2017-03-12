@@ -2,6 +2,9 @@ package sample;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -9,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 import java.time.Duration;
@@ -22,11 +26,12 @@ import java.time.temporal.TemporalUnit;
 import java.util.concurrent.*;
 
 public class Main extends Application {
-    Label diTimeNow = new Label();
+    Label diTimeNow,diTimeLeft;
     ScheduledFuture everySecond;
     LocalDateTime start,end;
 
     RadioButton radIready,radLexia,radCode;
+    Button btnStart,btnEnd,btnReset;
     @Override
     public void start(Stage primaryStage) throws Exception{
         Stage window = primaryStage;
@@ -44,24 +49,38 @@ public class Main extends Application {
         layout.setPrefWidth(400);
         layout.setAlignment(Pos.CENTER);
 
+        layout.setGridLinesVisible(false);
+
         Label lblTimeNow = new Label("Time started: ");
         lblTimeNow.setFont(labels);
         Label lblTimeLeft = new Label("Time left: ");
         lblTimeLeft.setFont(labels);
 
-        Button btnStart = new Button("Start");
+        btnStart = new Button("Start");
         btnStart.setPrefWidth(100);
         btnStart.setPrefHeight(35);
 
-        Button btnEnd = new Button("End");
+        btnEnd = new Button("End");
         btnEnd.setPrefWidth(100);
         btnEnd.setPrefHeight(35);
 
+        btnReset = new Button("Reset");
+        btnReset.setPrefWidth(100);
+        btnReset.setPrefHeight(35);
+
+        diTimeNow = new Label();
         diTimeNow.setFont(labels);
         diTimeNow.setTextFill(Color.INDIANRED);
-        Label diTimeLeft = new Label();
+        diTimeNow.setPrefWidth(100);
+
+
+
+        diTimeLeft = new Label();
         diTimeLeft.setFont(labels);
         diTimeLeft.setTextFill(Color.INDIANRED);
+        diTimeLeft.setPrefWidth(100);
+
+
 
         //******************************************************************
         //**                    Radio Buttons                             **
@@ -92,9 +111,14 @@ public class Main extends Application {
         layout.add(lblTimeNow,0,0); layout.add(diTimeNow,1,0);
         layout.add(lblTimeLeft,0,1); layout.add(diTimeLeft,1,1);
         layout.add(vbRadBtns,2,0,1,2);
-        layout.add(btnStart,1,3);layout.add(btnEnd,1,3);
+
+        layout.add(btnStart,0,3);layout.add(btnEnd,0,3);
+        layout.add(btnReset,2,3);
 
         btnEnd.setVisible(false);
+
+        btnStart.setDisable(false);
+        btnEnd.setDisable(true);
         ScheduledExecutorService pool = Executors.newScheduledThreadPool(6);
 
         //******************************************************************
@@ -102,20 +126,33 @@ public class Main extends Application {
         //******************************************************************
         btnStart.setOnAction(event -> {
             // Start the timer
-             start = LocalDateTime.now();
 
-            everySecond = pool.scheduleAtFixedRate(() -> {
-                Platform.runLater(()->{
-                    diTimeNow.setText(start.format(DateTimeFormatter.ofPattern("h:mm a")));
-                    diTimeLeft.setText(getTimeLeft());
-                });
-            },0,1, TimeUnit.SECONDS);
+            if(tgClasses.getSelectedToggle() != null){
+                start = LocalDateTime.now();
+                btnStart.setVisible(false);
+                btnEnd.setVisible(true);
+                btnEnd.setDisable(true);
+                everySecond = pool.scheduleAtFixedRate(() -> {
+                    Platform.runLater(()->{
+                        diTimeNow.setText(start.format(DateTimeFormatter.ofPattern("h:mm a")));
+                        diTimeLeft.setText(getTimeLeft());
+                        if(getTimeLeft().equals("0:00")){
+                            Alert a = new Alert(Alert.AlertType.INFORMATION);
+                            a.setContentText("Finished with this one!");
+                            a.show();
+                            everySecond.cancel(true);
+                            btnEnd.setDisable(false);
+                            radCode.setDisable(false);
+                            radIready.setDisable(false);
+                            radLexia.setDisable(false);
+                        }
+                    });
+                },0,1, TimeUnit.SECONDS);
 
-            btnStart.setVisible(false);
-            btnEnd.setVisible(true);
-
-
-
+                radCode.setDisable(true);
+                radIready.setDisable(true);
+                radLexia.setDisable(true);
+            }
         });
 
         btnEnd.setOnAction(event -> {
@@ -132,18 +169,49 @@ public class Main extends Application {
                     .setDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                     .setStartTime(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                     .setEndTime(end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                    .setTotalMin((int)min)
+                    .setTotalMin((int)ChronoUnit.MINUTES.between(start,end))
+                    .setFkClassId(getClassId())
                     .build();
+
+            new DBController().addActivity(a);
+            //clear the variables
+            everySecond = null;
+            start = null;
+            diTimeNow.setText("");
+            diTimeLeft.setText("");
+        });
+
+        tgClasses.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
+            @Override
+            public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue) {
+                if(tgClasses.getSelectedToggle() != null){
+                    btnStart.setDisable(false);
+                    btnEnd.setDisable(false);
+
+
+                }
+            }
+        });
+
+        btnReset.setOnAction(event -> {
+            everySecond.cancel(true);
+            everySecond = null;
+            start = null;
+            diTimeNow.setText("");
+            diTimeLeft.setText("");
+            radCode.setDisable(false);
+            radIready.setDisable(false);
+            radLexia.setDisable(false);
+            btnEnd.setVisible(false);
+            btnStart.setVisible(true);
         });
 
 
-
-
-
-        Scene scene = new Scene(layout,400,175);
+        Scene scene = new Scene(layout,600,175);
         window.setScene(scene);
         window.show();
     }
+
 
 
 
@@ -160,6 +228,20 @@ public class Main extends Application {
         }
 
         return target;
+    }
+
+    private int getClassId(){
+        int id=0;
+        if(radIready.isSelected()){
+            id = 1;
+        }
+        else if(radLexia.isSelected()){
+            id=2;
+        }
+        else{
+            id=3;
+        }
+        return id;
     }
 
     private String getTimeLeft(){

@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,24 +11,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 import java.util.concurrent.*;
 
 public class Main extends Application {
     Label diTimeNow,diTimeLeft;
     ScheduledFuture everySecond;
     LocalDateTime start,end;
-
     RadioButton radIready,radLexia,radCode;
     Button btnStart,btnEnd,btnReset;
     @Override
@@ -73,14 +66,10 @@ public class Main extends Application {
         diTimeNow.setTextFill(Color.INDIANRED);
         diTimeNow.setPrefWidth(100);
 
-
-
         diTimeLeft = new Label();
         diTimeLeft.setFont(labels);
         diTimeLeft.setTextFill(Color.INDIANRED);
         diTimeLeft.setPrefWidth(100);
-
-
 
         //******************************************************************
         //**                    Radio Buttons                             **
@@ -90,7 +79,6 @@ public class Main extends Application {
         radIready = new RadioButton("iReady");
         radIready.setToggleGroup(tgClasses);
         radIready.setFont(labels);
-
 
         radLexia = new RadioButton("Lexia");
         radLexia.setToggleGroup(tgClasses);
@@ -125,7 +113,6 @@ public class Main extends Application {
         //**                      Event Handlers                          **
         //******************************************************************
         btnStart.setOnAction(event -> {
-            // Start the timer
 
             if(tgClasses.getSelectedToggle() != null){
                 start = LocalDateTime.now();
@@ -187,8 +174,6 @@ public class Main extends Application {
                 if(tgClasses.getSelectedToggle() != null){
                     btnStart.setDisable(false);
                     btnEnd.setDisable(false);
-
-
                 }
             }
         });
@@ -206,14 +191,10 @@ public class Main extends Application {
             btnStart.setVisible(true);
         });
 
-
         Scene scene = new Scene(layout,600,175);
         window.setScene(scene);
         window.show();
     }
-
-
-
 
     private int getTargetTime(){
         int target = 0;
@@ -226,7 +207,6 @@ public class Main extends Application {
         else if(radLexia.isSelected()){
             target = Classes.LEXIA.getMinutes();
         }
-
         return target;
     }
 
@@ -245,31 +225,15 @@ public class Main extends Application {
     }
 
     private String getTimeLeft(){
-
-        // time left definition:
-        /*
-            (target time) - (elapsed time).
-         */
-
-        //long diff = ChronoUnit.SECONDS.between(start,LocalDateTime.now()); // elapsed time
         LocalDateTime targ = LocalDateTime.of(LocalDate.now(),LocalTime.of(0,getTargetTime()));
         long t = ChronoUnit.NANOS.between(start,LocalDateTime.now());
 
         LocalDateTime dif = targ.minusNanos(t);
 
-
         return dif.format(DateTimeFormatter.ofPattern("m:ss"));
-
-
     }
 
     private long getElapsedTime(){
-
-        //elapsed time:
-        /*
-            (now time) - (start time)
-         */
-
         long time = ChronoUnit.SECONDS.between(LocalDateTime.now(),start);
         return time*-1;
     }

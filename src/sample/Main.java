@@ -28,6 +28,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Stage window = primaryStage;
+        window.setTitle("New Isaac Timer");
         window.setOnCloseRequest(event -> {
             System.exit(-1);
         });
@@ -41,6 +42,7 @@ public class Main extends Application {
         layout.setBorder(border);
         layout.setPrefWidth(400);
         layout.setAlignment(Pos.CENTER);
+        
 
         layout.setGridLinesVisible(false);
 

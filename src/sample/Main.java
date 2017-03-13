@@ -43,7 +43,24 @@ public class Main extends Application {
         layout.setPrefWidth(400);
         layout.setAlignment(Pos.CENTER);
         
-
+        //*****************************************
+        //              Menu Bar                 **
+        //*****************************************
+        MenuBar menuBar = new MenuBar();
+        menuBar.prefWidthProperty().bind(window.widthProperty());
+        Menu file = new Menu("File");
+            MenuItem exit = new MenuItem("Exit");
+        Menu reports = new Menu("Reports");
+            MenuItem weekly = new MenuItem("Weekly Report");
+            MenuItem monthly = new MenuItem("Monthly Report");
+        reports.getItems().addAll(weekly,monthly);
+        file.getItems().add(exit);
+        menuBar.getMenus().add(file);
+        menuBar.getMenus().add(reports);
+        
+        
+        BorderPane layout1 = new BorderPane();
+        layout1.setTop(menuBar);
         layout.setGridLinesVisible(false);
 
         Label lblTimeNow = new Label("Time started: ");
@@ -193,7 +210,8 @@ public class Main extends Application {
             btnStart.setVisible(true);
         });
 
-        Scene scene = new Scene(layout,600,175);
+        layout1.setCenter(layout);
+        Scene scene = new Scene(layout1,600,225);
         window.setScene(scene);
         window.show();
     }

@@ -18,7 +18,7 @@ import java.sql.Statement;
  */
 public class DBController {
     boolean success;
-    private DataSource getDataSource(){
+    public DataSource getDataSource(){
         SQLiteDataSource ds = new SQLiteDataSource();
         Path base = Paths.get(System.getProperty("user.dir"));
         ds.setUrl("jdbc:sqlite:src/isaac_timer.sqlite");
@@ -26,7 +26,8 @@ public class DBController {
     }
 
     public static void main(String[] args) {
-        try(Connection conn = new DBController().getDataSource().getConnection()) {
+        DBController db = new DBController();
+        try(Connection conn = db.getDataSource().getConnection()) {
             System.out.println("SUCCESS!!!");
         }
         catch (SQLException e){

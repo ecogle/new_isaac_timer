@@ -210,6 +210,10 @@ public class Main extends Application {
             btnStart.setVisible(true);
         });
 
+        exit.setOnAction(event -> {
+            // todo confirm exit
+        });
+
         layout1.setCenter(layout);
         Scene scene = new Scene(layout1,600,225);
         window.setScene(scene);

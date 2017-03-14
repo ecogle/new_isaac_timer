@@ -4,19 +4,30 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
+import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 public class Main extends Application {
@@ -27,10 +38,21 @@ public class Main extends Application {
     Button btnStart,btnEnd,btnReset;
     @Override
     public void start(Stage primaryStage) throws Exception{
+        EventHandler exitHandler = event -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setContentText("Are you sure?");
+            alert.setHeaderText("Exit program");
+            Optional<ButtonType> action = alert.showAndWait();
+            if(action.get() == ButtonType.OK){
+                System.exit(-1);
+            }
+        };
+
         Stage window = primaryStage;
         window.setTitle("New Isaac Timer");
         window.setOnCloseRequest(event -> {
-            System.exit(-1);
+            event.consume();
+
         });
         Font labels = new Font("Comic Sans MS",18);
         Border border = new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID,CornerRadii.EMPTY,new BorderWidths(1)));
@@ -48,13 +70,19 @@ public class Main extends Application {
         //*****************************************
         MenuBar menuBar = new MenuBar();
         menuBar.prefWidthProperty().bind(window.widthProperty());
+
         Menu file = new Menu("File");
-            MenuItem exit = new MenuItem("Exit");
-        Menu reports = new Menu("Reports");
-            MenuItem weekly = new MenuItem("Weekly Report");
-            MenuItem monthly = new MenuItem("Monthly Report");
+        MenuItem exit = new MenuItem("Exit");
+        Menu reports = new Menu("Reports (Coming soon)");
+        Menu weekly = new Menu("Weekly Report");
+        MenuItem toCSV = new MenuItem("To CSV");
+        MenuItem displayWeekly = new MenuItem("Display");
+        MenuItem monthly = new MenuItem("Monthly Report");
+
+        weekly.getItems().addAll(toCSV,displayWeekly);
         reports.getItems().addAll(weekly,monthly);
         file.getItems().add(exit);
+
         menuBar.getMenus().add(file);
         menuBar.getMenus().add(reports);
         
@@ -131,6 +159,11 @@ public class Main extends Application {
         //******************************************************************
         //**                      Event Handlers                          **
         //******************************************************************
+
+        btnReset.setDisable(true);
+
+        exit.setOnAction(exitHandler);
+
         btnStart.setOnAction(event -> {
 
             if(tgClasses.getSelectedToggle() != null){
@@ -138,17 +171,20 @@ public class Main extends Application {
                 btnStart.setVisible(false);
                 btnEnd.setVisible(true);
                 btnEnd.setDisable(true);
+                btnReset.setDisable(false);
                 everySecond = pool.scheduleAtFixedRate(() -> {
                     Platform.runLater(()->{
                         diTimeNow.setText(start.format(DateTimeFormatter.ofPattern("h:mm a")));
                         diTimeLeft.setText(getTimeLeft());
                         int x = toInt(getTimeLeft());
                         if(x <= 0){
+                            Toolkit.getDefaultToolkit().beep();
                             Alert a = new Alert(Alert.AlertType.INFORMATION);
                             a.setContentText("Finished with this one!");
                             a.show();
                             everySecond.cancel(true);
                             btnEnd.setDisable(false);
+                            btnReset.setDisable(true);
                             radCode.setDisable(false);
                             radIready.setDisable(false);
                             radLexia.setDisable(false);
@@ -186,6 +222,7 @@ public class Main extends Application {
             start = null;
             diTimeNow.setText("");
             diTimeLeft.setText("");
+            btnReset.setDisable(false);
 
         });
 
@@ -214,9 +251,7 @@ public class Main extends Application {
             btnStart.setVisible(true);
         });
 
-        exit.setOnAction(event -> {
-            // todo confirm exit
-        });
+
 
         layout1.setCenter(layout);
         Scene scene = new Scene(layout1,600,225);
@@ -267,8 +302,14 @@ public class Main extends Application {
     }
 
     private int toInt(String s){
-        s = s.substring(s.indexOf(":")+1);
-        return Integer.parseInt(s);
+        String temp = "";
+        temp = s.substring(0,1);
+        temp = temp + s.substring(s.indexOf(":")+1);
+        return Integer.parseInt(temp);
+    }
+
+    private void exitMe(Event g){
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
     }
 
     public static void main(String[] args) {

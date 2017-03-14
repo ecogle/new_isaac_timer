@@ -142,7 +142,8 @@ public class Main extends Application {
                     Platform.runLater(()->{
                         diTimeNow.setText(start.format(DateTimeFormatter.ofPattern("h:mm a")));
                         diTimeLeft.setText(getTimeLeft());
-                        if(getTimeLeft().equals("0:00")){
+                        int x = toInt(getTimeLeft());
+                        if(x <= 0){
                             Alert a = new Alert(Alert.AlertType.INFORMATION);
                             a.setContentText("Finished with this one!");
                             a.show();
@@ -169,7 +170,7 @@ public class Main extends Application {
 
             long min = ChronoUnit.SECONDS.between(start,end);
 
-            System.out.println(Classes.IREADY.getMinutes());
+            //System.out.println(Classes.IREADY.getMinutes());
 
             Activity a = new ActivityBuilder()
                     .setDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
@@ -185,6 +186,7 @@ public class Main extends Application {
             start = null;
             diTimeNow.setText("");
             diTimeLeft.setText("");
+
         });
 
         tgClasses.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
@@ -198,8 +200,10 @@ public class Main extends Application {
         });
 
         btnReset.setOnAction(event -> {
-            everySecond.cancel(true);
-            everySecond = null;
+            if(everySecond != null){
+                everySecond.cancel(true);
+                everySecond = null;
+            }
             start = null;
             diTimeNow.setText("");
             diTimeLeft.setText("");
@@ -260,6 +264,11 @@ public class Main extends Application {
     private long getElapsedTime(){
         long time = ChronoUnit.SECONDS.between(LocalDateTime.now(),start);
         return time*-1;
+    }
+
+    private int toInt(String s){
+        s = s.substring(s.indexOf(":")+1);
+        return Integer.parseInt(s);
     }
 
     public static void main(String[] args) {

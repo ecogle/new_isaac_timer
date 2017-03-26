@@ -4,19 +4,29 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
+import java.awt.Toolkit;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 public class Main extends Application {
@@ -27,10 +37,21 @@ public class Main extends Application {
     Button btnStart,btnEnd,btnReset;
     @Override
     public void start(Stage primaryStage) throws Exception{
+        EventHandler exitHandler = event -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setContentText("Are you sure?");
+            alert.setHeaderText("Exit program");
+            Optional<ButtonType> action = alert.showAndWait();
+            if(action.get() == ButtonType.OK){
+                System.exit(-1);
+            }
+        };
+
         Stage window = primaryStage;
         window.setTitle("New Isaac Timer");
         window.setOnCloseRequest(event -> {
-            System.exit(-1);
+            event.consume();
+
         });
         Font labels = new Font("Comic Sans MS",18);
         Border border = new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID,CornerRadii.EMPTY,new BorderWidths(1)));
@@ -43,7 +64,30 @@ public class Main extends Application {
         layout.setPrefWidth(400);
         layout.setAlignment(Pos.CENTER);
         
+        //*****************************************
+        //              Menu Bar                 **
+        //*****************************************
+        MenuBar menuBar = new MenuBar();
+        menuBar.prefWidthProperty().bind(window.widthProperty());
 
+        Menu file = new Menu("File");
+        MenuItem exit = new MenuItem("Exit");
+        Menu reports = new Menu("Reports (Coming soon)");
+        Menu weekly = new Menu("Weekly Report");
+        MenuItem toCSV = new MenuItem("To CSV");
+        MenuItem displayWeekly = new MenuItem("Display");
+        MenuItem monthly = new MenuItem("Monthly Report");
+
+        weekly.getItems().addAll(toCSV,displayWeekly);
+        reports.getItems().addAll(weekly,monthly);
+        file.getItems().add(exit);
+
+        menuBar.getMenus().add(file);
+        menuBar.getMenus().add(reports);
+        
+        
+        BorderPane layout1 = new BorderPane();
+        layout1.setTop(menuBar);
         layout.setGridLinesVisible(false);
 
         Label lblTimeNow = new Label("Time started: ");
@@ -114,6 +158,11 @@ public class Main extends Application {
         //******************************************************************
         //**                      Event Handlers                          **
         //******************************************************************
+
+        btnReset.setDisable(true);
+
+        exit.setOnAction(exitHandler);
+
         btnStart.setOnAction(event -> {
 
             if(tgClasses.getSelectedToggle() != null){
@@ -121,16 +170,20 @@ public class Main extends Application {
                 btnStart.setVisible(false);
                 btnEnd.setVisible(true);
                 btnEnd.setDisable(true);
+                btnReset.setDisable(false);
                 everySecond = pool.scheduleAtFixedRate(() -> {
                     Platform.runLater(()->{
                         diTimeNow.setText(start.format(DateTimeFormatter.ofPattern("h:mm a")));
                         diTimeLeft.setText(getTimeLeft());
-                        if(getTimeLeft().equals("0:00")){
+                        int x = toInt(getTimeLeft());
+                        if(x <= 0){
+                            Toolkit.getDefaultToolkit().beep();
                             Alert a = new Alert(Alert.AlertType.INFORMATION);
                             a.setContentText("Finished with this one!");
-                            a.show();
+                            a.showAndWait();
                             everySecond.cancel(true);
                             btnEnd.setDisable(false);
+                            btnReset.setDisable(true);
                             radCode.setDisable(false);
                             radIready.setDisable(false);
                             radLexia.setDisable(false);
@@ -152,7 +205,7 @@ public class Main extends Application {
 
             long min = ChronoUnit.SECONDS.between(start,end);
 
-            System.out.println(Classes.IREADY.getMinutes());
+            //System.out.println(Classes.IREADY.getMinutes());
 
             Activity a = new ActivityBuilder()
                     .setDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
@@ -168,6 +221,8 @@ public class Main extends Application {
             start = null;
             diTimeNow.setText("");
             diTimeLeft.setText("");
+            btnReset.setDisable(false);
+
         });
 
         tgClasses.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
@@ -181,8 +236,10 @@ public class Main extends Application {
         });
 
         btnReset.setOnAction(event -> {
-            everySecond.cancel(true);
-            everySecond = null;
+            if(everySecond != null){
+                everySecond.cancel(true);
+                everySecond = null;
+            }
             start = null;
             diTimeNow.setText("");
             diTimeLeft.setText("");
@@ -193,7 +250,10 @@ public class Main extends Application {
             btnStart.setVisible(true);
         });
 
-        Scene scene = new Scene(layout,600,175);
+
+
+        layout1.setCenter(layout);
+        Scene scene = new Scene(layout1,600,225);
         window.setScene(scene);
         window.show();
     }
@@ -238,6 +298,17 @@ public class Main extends Application {
     private long getElapsedTime(){
         long time = ChronoUnit.SECONDS.between(LocalDateTime.now(),start);
         return time*-1;
+    }
+
+    private int toInt(String s){
+        String temp = "";
+        temp = s.substring(0,1);
+        temp = temp + s.substring(s.indexOf(":")+1);
+        return Integer.parseInt(temp);
+    }
+
+    private void exitMe(Event g){
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
     }
 
     public static void main(String[] args) {

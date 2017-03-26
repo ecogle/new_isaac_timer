@@ -18,26 +18,29 @@ import java.sql.Statement;
  */
 public class DBController {
     boolean success;
-    private DataSource getDataSource(){
+    public DataSource getDataSource(){
         SQLiteDataSource ds = new SQLiteDataSource();
         Path base = Paths.get(System.getProperty("user.dir"));
-        ds.setUrl("jdbc:sqlite:src/isaac_timer.sqlite");
+        ds.setUrl("jdbc:sqlite:isaac_timer.sqlite");
         return ds;
     }
 
     public static void main(String[] args) {
-        try(Connection conn = new DBController().getDataSource().getConnection()) {
+        DBController db = new DBController();
+        try(Connection conn = db.getDataSource().getConnection()) {
             System.out.println("SUCCESS!!!");
         }
         catch (SQLException e){
-
+            e.printStackTrace();
         }
         //System.out.println(System.getProperty("user.dir"));
     }
 
-    public boolean addActivity(Activity a){
+    public void addActivity(Activity a){
 
-        try(Connection conn = new DBController().getDataSource().getConnection()){
+        //Connection conn = new DBController().getDataSource().getConnection()
+        DataSource ds = new DBController().getDataSource();
+        try(Connection conn = ds.getConnection()){
             Statement stmnt = conn.createStatement();
             String sql = new String("insert into activity (startTime,endTime,totalMinutes,fkClassID,date) values" +
                     "('"+a.getStartTime()+"','"+a.getEndTime()+"',"+a.getTotalMinutes()+","+a.getFkClassId()+",'"+a.getDate()+"')");
@@ -46,13 +49,14 @@ public class DBController {
         }
         catch (SQLException e){
             Alert alt = new Alert(Alert.AlertType.ERROR);
-            alt.setContentText("There is a SQL Error");
+            alt.setContentText(e.getMessage());
+            e.printStackTrace();
         }
-        if(success){
-            return true;
+        catch (Exception r){
+            r.printStackTrace();
         }
-        else{
-            return false;
+        catch (Error r){
+            r.printStackTrace();
         }
     }
 

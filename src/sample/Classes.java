@@ -5,7 +5,7 @@ package sample;
  */
 public enum Classes {
 
-    IREADY(15),LEXIA(10),CODE(15);
+    IREADY(1),LEXIA(1),CODE(1);
     private int minutes;
 
     Classes(int min){

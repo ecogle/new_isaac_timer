@@ -174,13 +174,14 @@ public class Main extends Application {
                 everySecond = pool.scheduleAtFixedRate(() -> {
                     Platform.runLater(()->{
                         diTimeNow.setText(start.format(DateTimeFormatter.ofPattern("h:mm a")));
-                        diTimeLeft.setText(getTimeLeft());
-                        int x = toInt(getTimeLeft());
+                        String time = getTimeLeft();
+                        diTimeLeft.setText(time);
+                        int x = toInt(time);
                         if(x <= 0){
                             Toolkit.getDefaultToolkit().beep();
                             Alert a = new Alert(Alert.AlertType.INFORMATION);
                             a.setContentText("Finished with this one!");
-                            a.showAndWait();
+                            a.show();
                             everySecond.cancel(true);
                             btnEnd.setDisable(false);
                             btnReset.setDisable(true);

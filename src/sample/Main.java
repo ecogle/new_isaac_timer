@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -21,7 +20,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.awt.*;
+import java.awt.Toolkit;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -181,7 +180,7 @@ public class Main extends Application {
                             Toolkit.getDefaultToolkit().beep();
                             Alert a = new Alert(Alert.AlertType.INFORMATION);
                             a.setContentText("Finished with this one!");
-                            a.show();
+                            a.showAndWait();
                             everySecond.cancel(true);
                             btnEnd.setDisable(false);
                             btnReset.setDisable(true);

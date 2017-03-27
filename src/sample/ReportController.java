@@ -56,5 +56,5 @@ public class ReportController {
         }
         return LocalDate.now();
     }
-
+    
 }

@@ -250,6 +250,10 @@ public class Main extends Application {
             btnEnd.setVisible(false);
             btnStart.setVisible(true);
         });
+        
+        displayWeekly.setOnAction(event -> {
+            new WeeklyReport().display();
+        });
 
 
 
